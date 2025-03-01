@@ -261,7 +261,7 @@ export default function Products() {
               type="text"
               fullWidth
               multiline
-              rows={3}
+              rows={4}
               value={newProduct.description}
               onChange={handleInputChange}
               required
