@@ -70,7 +70,6 @@ function Navbar() {
   const menuItems = [
     { text: 'Home', path: '/', icon: <HomeIcon /> },
     { text: 'Products', path: '/products', icon: <ProductsIcon /> },
-    { text: 'About', path: '/about', icon: <InfoIcon /> },
   ];
 
   if (isSeller) {

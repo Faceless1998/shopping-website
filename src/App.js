@@ -7,7 +7,6 @@ import Home from './pages/Home';
 import Products from './pages/Products';
 import Cart from './pages/Cart';
 import Login from './pages/Login';
-import About from './pages/About';
 import AddProduct from './pages/AddProduct';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -112,7 +111,6 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/about" element={<About />} />
       <Route path="/products" element={<Products />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
