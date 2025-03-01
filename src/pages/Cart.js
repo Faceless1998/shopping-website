@@ -54,7 +54,7 @@ function Cart() {
           >
             <Box
               component="img"
-              src={item.product.image ? `http://localhost:5000${item.product.image}` : 'https://via.placeholder.com/300'}
+              src={item.product.image ? `https://market-server-inky.vercel.app${item.product.image}` : 'https://via.placeholder.com/300'}
               alt={item.product.name}
               sx={{ width: 100, height: 100, mr: 2, objectFit: 'cover' }}
             />

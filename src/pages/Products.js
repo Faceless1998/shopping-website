@@ -167,7 +167,7 @@ export default function Products() {
               <CardMedia
                 component="img"
                 height="200"
-                image={product.image ? `http://localhost:5000${product.image}` : 'https://via.placeholder.com/300'}
+                image={product.image ? `https://market-server-inky.vercel.app${product.image}` : 'https://via.placeholder.com/300'}
                 alt={product.name}
               />
               <CardContent sx={{ flexGrow: 1 }}>
