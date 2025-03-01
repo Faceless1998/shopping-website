@@ -5,13 +5,13 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Products from './pages/Products';
-import StoreProducts from './pages/StoreProducts';
-import AddProduct from './pages/AddProduct';
 import Cart from './pages/Cart';
 import Login from './pages/Login';
 import About from './pages/About';
+import AddProduct from './pages/AddProduct';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import Register from './components/Register';
 
 const theme = createTheme({
   palette: {
@@ -74,71 +74,91 @@ const theme = createTheme({
   },
 });
 
-function PrivateRoute({ children, requireSeller = false }) {
-  const { isAuthenticated, isSeller } = useAuth();
+// Move route components outside App to prevent unnecessary re-renders
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Loading...</div>;
+  }
   
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
-
-  if (requireSeller && !isSeller) {
-    return <Navigate to="/products" />;
-  }
-
+  
   return children;
-}
+};
+
+const SellerRoute = ({ children }) => {
+  const { isAuthenticated, isSeller, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+  
+  if (!isSeller) {
+    return <Navigate to="/" />;
+  }
+  
+  return children;
+};
+
+// Separate Routes component to ensure auth context is available
+const AppRoutes = () => {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/products" element={<Products />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route
+        path="/cart"
+        element={
+          <ProtectedRoute>
+            <Cart />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-store"
+        element={
+          <SellerRoute>
+            <Products />
+          </SellerRoute>
+        }
+      />
+      <Route
+        path="/add-product"
+        element={
+          <SellerRoute>
+            <AddProduct />
+          </SellerRoute>
+        }
+      />
+    </Routes>
+  );
+};
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <AuthProvider>
-        <CartProvider>
-          <Router>
+    <Router>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <AuthProvider>
+          <CartProvider>
             <div className="App">
               <Navbar />
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/" element={<Home />} />
-                <Route path="/about" element={<About />} />
-                <Route
-                  path="/products"
-                  element={
-                    <PrivateRoute>
-                      <Products />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/store-products"
-                  element={
-                    <PrivateRoute requireSeller>
-                      <StoreProducts />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/add-product"
-                  element={
-                    <PrivateRoute requireSeller>
-                      <AddProduct />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/cart"
-                  element={
-                    <PrivateRoute>
-                      <Cart />
-                    </PrivateRoute>
-                  }
-                />
-              </Routes>
+              <AppRoutes />
             </div>
-          </Router>
-        </CartProvider>
-      </AuthProvider>
-    </ThemeProvider>
+          </CartProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </Router>
   );
 }
 

@@ -18,7 +18,7 @@ import { Link } from 'react-router-dom';
 function Cart() {
   const { cart, removeFromCart, updateQuantity, getCartTotal } = useCart();
 
-  if (cart.length === 0) {
+  if (!cart.items || cart.items.length === 0) {
     return (
       <Container sx={{ py: 4, textAlign: 'center' }}>
         <Typography variant="h5" gutterBottom>
@@ -43,9 +43,9 @@ function Cart() {
         Shopping Cart
       </Typography>
       <List>
-        {cart.map((item) => (
+        {cart.items.map((item) => (
           <ListItem
-            key={item.id}
+            key={item.product._id}
             sx={{
               border: '1px solid #eee',
               mb: 2,
@@ -54,13 +54,13 @@ function Cart() {
           >
             <Box
               component="img"
-              src={item.image}
-              alt={item.name}
+              src={item.product.image ? `http://localhost:5000${item.product.image}` : 'https://via.placeholder.com/300'}
+              alt={item.product.name}
               sx={{ width: 100, height: 100, mr: 2, objectFit: 'cover' }}
             />
             <ListItemText
-              primary={item.name}
-              secondary={`$${item.price.toFixed(2)}`}
+              primary={item.product.name}
+              secondary={`$${item.product.price.toFixed(2)}`}
             />
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mr: 2 }}>
               <TextField
@@ -69,21 +69,21 @@ function Cart() {
                 onChange={(e) => {
                   const value = parseInt(e.target.value);
                   if (value > 0) {
-                    updateQuantity(item.id, value);
+                    updateQuantity(item.product._id, value);
                   }
                 }}
                 inputProps={{ min: 1 }}
                 sx={{ width: 80 }}
               />
               <Typography>
-                ${(item.price * item.quantity).toFixed(2)}
+                ${(item.product.price * item.quantity).toFixed(2)}
               </Typography>
             </Box>
             <ListItemSecondaryAction>
               <IconButton
                 edge="end"
                 aria-label="delete"
-                onClick={() => removeFromCart(item.id)}
+                onClick={() => removeFromCart(item.product._id)}
               >
                 <DeleteIcon />
               </IconButton>

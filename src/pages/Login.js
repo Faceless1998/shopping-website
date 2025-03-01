@@ -90,45 +90,79 @@ function Login() {
     return true;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-
     if (!validateForm()) return;
 
-    if (mode === 'login') {
-      // In a real app, you would validate the role (user/seller) here
-      const success = login(formData.email, formData.password, activeTab === 1 ? 'seller' : 'user');
-      if (success) {
-        navigate(activeTab === 1 ? '/store-products' : '/products');
+    try {
+      setError('');
+      if (mode === 'register') {
+        const storeInfo = activeTab === 1 ? {
+          name: formData.storeName.trim(),
+          description: formData.storeDescription.trim(),
+          phone: formData.phone.trim(),
+          address: formData.address.trim(),
+        } : null;
+
+        const userData = {
+          email: formData.email.trim(),
+          password: formData.password,
+          name: formData.name.trim(),
+          role: activeTab === 0 ? 'user' : 'seller',
+          storeInfo,
+        };
+
+        console.log('Sending registration data:', JSON.stringify(userData, null, 2));
+
+        try {
+          const response = await fetch('http://localhost:5000/api/auth/register', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(userData)
+          });
+
+          console.log('Response status:', response.status);
+          const contentType = response.headers.get('content-type');
+          console.log('Content-Type:', contentType);
+
+          if (!response.ok) {
+            let errorMessage;
+            try {
+              const errorData = await response.json();
+              errorMessage = errorData.message;
+            } catch (e) {
+              const text = await response.text();
+              console.error('Raw response:', text);
+              errorMessage = 'Registration failed: ' + (text || 'Invalid server response');
+            }
+            throw new Error(errorMessage);
+          }
+
+          const data = await response.json();
+          console.log('Registration successful:', data);
+
+          // After successful registration, log in
+          await login(formData.email.trim(), formData.password);
+          navigate(activeTab === 1 ? '/store-products' : '/products');
+        } catch (error) {
+          console.error('Registration error:', error);
+          setError(error.message || 'Registration failed');
+        }
       } else {
-        setError('Invalid credentials');
-      }
-    } else {
-      // In a real app, you would make an API call to register the user
-      const storeInfo = activeTab === 1 ? {
-        name: formData.storeName,
-        description: formData.storeDescription,
-        phone: formData.phone,
-        address: formData.address,
-      } : null;
-
-      console.log('Registration data:', {
-        ...formData,
-        role: activeTab === 0 ? 'user' : 'seller',
-        storeInfo,
-      });
-
-      // For demo purposes, automatically log in after registration
-      const success = login(
-        formData.email,
-        formData.password,
-        activeTab === 1 ? 'seller' : 'user',
-        storeInfo
-      );
-      if (success) {
+        // Handle login
+        await login(formData.email.trim(), formData.password);
         navigate(activeTab === 1 ? '/store-products' : '/products');
       }
+    } catch (error) {
+      console.error('Form submission error:', error);
+      if (error.response) {
+        console.error('Error response:', error.response);
+        console.error('Error data:', error.response.data);
+      }
+      setError(error.response?.data?.message || error.message || 'An error occurred');
     }
   };
 

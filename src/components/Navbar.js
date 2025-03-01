@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -20,17 +20,20 @@ import {
   useMediaQuery,
   Tooltip,
   Fade,
+  Divider,
 } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import HomeIcon from '@mui/icons-material/Home';
-import InfoIcon from '@mui/icons-material/Info';
-import ShopIcon from '@mui/icons-material/Shop';
-import PersonIcon from '@mui/icons-material/Person';
-import LogoutIcon from '@mui/icons-material/Logout';
+import {
+  Menu as MenuIcon,
+  ShoppingCart as CartIcon,
+  Person as PersonIcon,
+  Store as StoreIcon,
+  ExitToApp as LogoutIcon,
+  Home as HomeIcon,
+  Info as InfoIcon,
+  ShoppingBag as ProductsIcon,
+} from '@mui/icons-material';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import StorefrontIcon from '@mui/icons-material/Storefront';
 import AddIcon from '@mui/icons-material/Add';
 
 function Navbar() {
@@ -39,88 +42,77 @@ function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [userMenuAnchor, setUserMenuAnchor] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
 
-  const cartItemsCount = cart.reduce((total, item) => total + item.quantity, 0);
+  const cartItemsCount = cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
+
+  const handleMenu = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
-    handleUserMenuClose();
-  };
-
-  const handleUserMenuClick = (event) => {
-    setUserMenuAnchor(event.currentTarget);
-  };
-
-  const handleUserMenuClose = () => {
-    setUserMenuAnchor(null);
+    handleClose();
+    navigate('/');
   };
 
   const isCurrentPath = (path) => {
     return location.pathname === path;
   };
 
-  const navItems = [
-    { title: 'Home', path: '/', icon: <HomeIcon />, auth: false },
-    { title: 'About', path: '/about', icon: <InfoIcon />, auth: false },
-    ...(isSeller ? [
-      { title: 'My Store', path: '/store-products', icon: <StorefrontIcon />, auth: true },
-    ] : [
-      { title: 'Products', path: '/products', icon: <ShopIcon />, auth: true },
-    ]),
+  const menuItems = [
+    { text: 'Home', path: '/', icon: <HomeIcon /> },
+    { text: 'Products', path: '/products', icon: <ProductsIcon /> },
+    { text: 'About', path: '/about', icon: <InfoIcon /> },
   ];
 
-  const renderNavItems = (mobile = false) => {
-    return navItems.map((item) => {
-      if (item.auth && !isAuthenticated) return null;
-      
-      if (mobile) {
-        return (
+  if (isSeller) {
+    menuItems.push({ text: 'My Store', path: '/my-store', icon: <StoreIcon /> });
+  }
+
+  const renderMobileMenu = () => (
+    <Drawer
+      anchor="left"
+      open={mobileMenuOpen}
+      onClose={() => setMobileMenuOpen(false)}
+    >
+      <List sx={{ width: 250 }}>
+        {menuItems.map((item) => (
           <ListItem
             button
-            key={item.path}
-            component={Link}
+            key={item.text}
+            component={RouterLink}
             to={item.path}
             onClick={() => setMobileMenuOpen(false)}
-            selected={isCurrentPath(item.path)}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.title} />
+            <ListItemText primary={item.text} />
           </ListItem>
-        );
-      }
-
-      return (
-        <Button
-          key={item.path}
-          component={Link}
-          to={item.path}
-          sx={{
-            color: isCurrentPath(item.path) ? 'primary.main' : 'text.primary',
-            fontWeight: isCurrentPath(item.path) ? 'bold' : 'normal',
-            position: 'relative',
-            '&::after': isCurrentPath(item.path) ? {
-              content: '""',
-              position: 'absolute',
-              bottom: 0,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '60%',
-              height: '3px',
-              backgroundColor: 'primary.main',
-              borderRadius: '2px',
-            } : {},
-          }}
-        >
-          {item.title}
-        </Button>
-      );
-    });
-  };
+        ))}
+        <Divider />
+        {isAuthenticated ? (
+          <>
+            <ListItem button onClick={handleLogout}>
+              <ListItemIcon><LogoutIcon /></ListItemIcon>
+              <ListItemText primary="Logout" />
+            </ListItem>
+          </>
+        ) : (
+          <ListItem button component={RouterLink} to="/login">
+            <ListItemIcon><PersonIcon /></ListItemIcon>
+            <ListItemText primary="Login" />
+          </ListItem>
+        )}
+      </List>
+    </Drawer>
+  );
 
   return (
     <AppBar 
@@ -135,7 +127,7 @@ function Navbar() {
         {/* Logo */}
         <Typography 
           variant="h5" 
-          component={Link} 
+          component={RouterLink} 
           to="/" 
           sx={{ 
             textDecoration: 'none', 
@@ -146,13 +138,23 @@ function Navbar() {
             gap: 1,
           }}
         >
-          <ShopIcon /> TechShop
+          <StoreIcon /> TechShop
         </Typography>
 
         {/* Desktop Navigation */}
         {!isMobile && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            {renderNavItems()}
+            {menuItems.map((item) => (
+              <Button
+                key={item.text}
+                color="inherit"
+                component={RouterLink}
+                to={item.path}
+                startIcon={item.icon}
+              >
+                {item.text}
+              </Button>
+            ))}
           </Box>
         )}
 
@@ -161,7 +163,7 @@ function Navbar() {
           {isAuthenticated && !isSeller && (
             <Tooltip title="Cart" arrow TransitionComponent={Fade}>
               <IconButton 
-                component={Link} 
+                component={RouterLink} 
                 to="/cart" 
                 sx={{ 
                   color: isCurrentPath('/cart') ? 'primary.main' : 'text.primary',
@@ -178,7 +180,7 @@ function Navbar() {
                     },
                   }}
                 >
-                  <ShoppingCartIcon />
+                  <CartIcon />
                 </Badge>
               </IconButton>
             </Tooltip>
@@ -187,7 +189,7 @@ function Navbar() {
           {isAuthenticated ? (
             <>
               <Tooltip title="Account" arrow TransitionComponent={Fade}>
-                <IconButton onClick={handleUserMenuClick}>
+                <IconButton onClick={handleMenu}>
                   <Avatar 
                     sx={{ 
                       width: 35, 
@@ -205,9 +207,9 @@ function Navbar() {
                 </IconButton>
               </Tooltip>
               <Menu
-                anchorEl={userMenuAnchor}
-                open={Boolean(userMenuAnchor)}
-                onClose={handleUserMenuClose}
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleClose}
                 TransitionComponent={Fade}
                 sx={{
                   '& .MuiPaper-root': {
@@ -228,9 +230,9 @@ function Navbar() {
                 </MenuItem>
                 {isSeller && (
                   <MenuItem 
-                    component={Link}
+                    component={RouterLink}
                     to="/add-product"
-                    onClick={handleUserMenuClose}
+                    onClick={handleClose}
                     sx={{ py: 1 }}
                   >
                     <ListItemIcon>
@@ -249,7 +251,7 @@ function Navbar() {
             </>
           ) : (
             <Button
-              component={Link}
+              component={RouterLink}
               to="/login"
               variant="contained"
               sx={{
@@ -266,35 +268,17 @@ function Navbar() {
 
           {/* Mobile Menu */}
           {isMobile && (
-            <>
-              <IconButton
-                edge="end"
-                color="inherit"
-                aria-label="menu"
-                onClick={() => setMobileMenuOpen(true)}
-              >
-                <MenuIcon />
-              </IconButton>
-              <Drawer
-                anchor="right"
-                open={mobileMenuOpen}
-                onClose={() => setMobileMenuOpen(false)}
-              >
-                <Box
-                  sx={{
-                    width: 250,
-                    pt: 2,
-                  }}
-                >
-                  <List>
-                    {renderNavItems(true)}
-                  </List>
-                </Box>
-              </Drawer>
-            </>
+            <IconButton
+              edge="start"
+              color="inherit"
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <MenuIcon />
+            </IconButton>
           )}
         </Box>
       </Toolbar>
+      {renderMobileMenu()}
     </AppBar>
   );
 }
