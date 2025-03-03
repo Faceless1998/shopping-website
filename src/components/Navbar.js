@@ -21,6 +21,8 @@ import {
   Tooltip,
   Fade,
   Divider,
+  Select,
+  FormControl,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -34,11 +36,13 @@ import {
 } from '@mui/icons-material';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import AddIcon from '@mui/icons-material/Add';
 
 function Navbar() {
   const { cart } = useCart();
   const { user, logout, isAuthenticated, isSeller } = useAuth();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
@@ -63,17 +67,21 @@ function Navbar() {
     navigate('/');
   };
 
+  const handleLanguageChange = (event) => {
+    i18n.changeLanguage(event.target.value);
+  };
+
   const isCurrentPath = (path) => {
     return location.pathname === path;
   };
 
   const menuItems = [
-    { text: 'Home', path: '/', icon: <HomeIcon /> },
-    { text: 'Products', path: '/products', icon: <ProductsIcon /> },
+    { text: t('home'), path: '/', icon: <HomeIcon /> },
+    { text: t('products'), path: '/products', icon: <ProductsIcon /> },
   ];
 
   if (isSeller) {
-    menuItems.push({ text: 'My Store', path: '/my-store', icon: <StoreIcon /> });
+    menuItems.push({ text: t('myStore'), path: '/my-store', icon: <StoreIcon /> });
   }
 
   const renderMobileMenu = () => (
@@ -100,13 +108,13 @@ function Navbar() {
           <>
             <ListItem button onClick={handleLogout}>
               <ListItemIcon><LogoutIcon /></ListItemIcon>
-              <ListItemText primary="Logout" />
+              <ListItemText primary={t('logout')} />
             </ListItem>
           </>
         ) : (
           <ListItem button component={RouterLink} to="/login">
             <ListItemIcon><PersonIcon /></ListItemIcon>
-            <ListItemText primary="Login" />
+            <ListItemText primary={t('login')} />
           </ListItem>
         )}
       </List>
@@ -158,9 +166,27 @@ function Navbar() {
         )}
 
         {/* Right Section */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {/* Language Switcher */}
+          <FormControl size="small">
+            <Select
+              value={i18n.language}
+              onChange={handleLanguageChange}
+              sx={{
+                minWidth: 100,
+                '& .MuiSelect-select': {
+                  py: 1,
+                },
+              }}
+            >
+              <MenuItem value="ka">ქართული</MenuItem>
+              <MenuItem value="ru">Русский</MenuItem>
+              <MenuItem value="en">English</MenuItem>
+            </Select>
+          </FormControl>
+
           {isAuthenticated && !isSeller && (
-            <Tooltip title="Cart" arrow TransitionComponent={Fade}>
+            <Tooltip title={t('cart')} arrow TransitionComponent={Fade}>
               <IconButton 
                 component={RouterLink} 
                 to="/cart" 
@@ -187,7 +213,7 @@ function Navbar() {
 
           {isAuthenticated ? (
             <>
-              <Tooltip title="Account" arrow TransitionComponent={Fade}>
+              <Tooltip title={t('account')} arrow TransitionComponent={Fade}>
                 <IconButton onClick={handleMenu}>
                   <Avatar 
                     sx={{ 
@@ -224,7 +250,7 @@ function Navbar() {
                   </ListItemIcon>
                   <ListItemText 
                     primary={user?.name}
-                    secondary={isSeller ? 'Seller Account' : 'User Account'}
+                    secondary={isSeller ? t('sellerAccount') : t('userAccount')}
                   />
                 </MenuItem>
                 {isSeller && (
@@ -237,31 +263,25 @@ function Navbar() {
                     <ListItemIcon>
                       <AddIcon fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText primary="Add Product" />
+                    <ListItemText primary={t('addProduct')} />
                   </MenuItem>
                 )}
                 <MenuItem onClick={handleLogout} sx={{ py: 1 }}>
                   <ListItemIcon>
                     <LogoutIcon fontSize="small" />
                   </ListItemIcon>
-                  <ListItemText primary="Logout" />
+                  <ListItemText primary={t('logout')} />
                 </MenuItem>
               </Menu>
             </>
           ) : (
             <Button
+              color="inherit"
               component={RouterLink}
               to="/login"
-              variant="contained"
-              sx={{
-                px: 3,
-                py: 1,
-                borderRadius: 2,
-                textTransform: 'none',
-                fontWeight: 'bold',
-              }}
+              startIcon={<PersonIcon />}
             >
-              Sign In
+              {t('login')}
             </Button>
           )}
 
