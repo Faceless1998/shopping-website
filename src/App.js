@@ -10,7 +10,7 @@ import Login from './pages/Login';
 import AddProduct from './pages/AddProduct';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import Register from './components/Register';
+import { LanguageProvider } from './context/LanguageContext';
 
 const theme = createTheme({
   palette: {
@@ -113,7 +113,6 @@ const AppRoutes = () => {
       <Route path="/" element={<Home />} />
       <Route path="/products" element={<Products />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
       <Route
         path="/cart"
         element={
@@ -149,10 +148,12 @@ function App() {
         <CssBaseline />
         <AuthProvider>
           <CartProvider>
-            <div className="App">
-              <Navbar />
-              <AppRoutes />
-            </div>
+            <LanguageProvider>
+              <div className="App">
+                <Navbar />
+                <AppRoutes />
+              </div>
+            </LanguageProvider>
           </CartProvider>
         </AuthProvider>
       </ThemeProvider>
